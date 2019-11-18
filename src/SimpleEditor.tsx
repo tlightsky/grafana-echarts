@@ -4,6 +4,8 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/darcula.css';
+import 'codemirror/addon/display/fullscreen';
+import 'codemirror/addon/display/fullscreen.css';
 import { SimpleOptions } from './types';
 import './style.css';
 
@@ -12,7 +14,46 @@ export interface SimpleEditor {
   cm: CodeMirror.EditorFromTextArea;
 }
 
+function fullscreenToggleGen() {
+  var state = false;
+  function setFullscreen(cm: CodeMirror.Editor) {
+    var wrap = cm.getWrapperElement();
+    cm.state.fullScreenRestore = {
+      scrollTop: window.pageYOffset,
+      scrollLeft: window.pageXOffset,
+      width: wrap.style.width,
+      height: wrap.style.height,
+    };
+    wrap.style.width = '';
+    wrap.style.height = 'auto';
+    wrap.className += ' CodeMirror-fullscreen';
+    document.documentElement.style.overflow = 'hidden';
+    cm.refresh();
+  }
+
+  function setNormal(cm: CodeMirror.Editor) {
+    var wrap = cm.getWrapperElement();
+    wrap.className = wrap.className.replace(/\s*CodeMirror-fullscreen\b/, '');
+    document.documentElement.style.overflow = '';
+    var info = cm.state.fullScreenRestore;
+    wrap.style.width = info.width;
+    wrap.style.height = info.height;
+    window.scrollTo(info.scrollLeft, info.scrollTop);
+    cm.refresh();
+  }
+
+  return function(cm: CodeMirror.Editor) {
+    state = !state;
+    if (state) {
+      setFullscreen(cm);
+    } else {
+      setNormal(cm);
+    }
+  };
+}
+
 export class SimpleEditor extends PureComponent<PanelEditorProps<SimpleOptions>> {
+  fullscreenToggle: any;
   constructor(props: any) {
     super(props);
 
@@ -20,11 +61,20 @@ export class SimpleEditor extends PureComponent<PanelEditorProps<SimpleOptions>>
   }
 
   componentDidMount() {
-    console.log(this);
+    var fullscreenToggle = fullscreenToggleGen();
     this.cm = CodeMirror.fromTextArea(this.editorRef.current, {
       theme: 'darcula',
       mode: 'javascript',
       tabSize: 2,
+      extraKeys: {
+        'Ctrl-Enter': function(cm) {
+          fullscreenToggle(cm);
+          // cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        Esc: function(cm) {
+          // if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        },
+      },
     });
 
     this.cm.on('blur', (cm: any) => {
