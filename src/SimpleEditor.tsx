@@ -15,9 +15,9 @@ export interface SimpleEditor {
 }
 
 function fullscreenToggleGen() {
-  var state = false;
+  let state = false;
   function setFullscreen(cm: CodeMirror.Editor) {
-    var wrap = cm.getWrapperElement();
+    const wrap = cm.getWrapperElement();
     cm.state.fullScreenRestore = {
       scrollTop: window.pageYOffset,
       scrollLeft: window.pageXOffset,
@@ -32,17 +32,17 @@ function fullscreenToggleGen() {
   }
 
   function setNormal(cm: CodeMirror.Editor) {
-    var wrap = cm.getWrapperElement();
+    const wrap = cm.getWrapperElement();
     wrap.className = wrap.className.replace(/\s*CodeMirror-fullscreen\b/, '');
     document.documentElement.style.overflow = '';
-    var info = cm.state.fullScreenRestore;
+    const info = cm.state.fullScreenRestore;
     wrap.style.width = info.width;
     wrap.style.height = info.height;
     window.scrollTo(info.scrollLeft, info.scrollTop);
     cm.refresh();
   }
 
-  return function(cm: CodeMirror.Editor) {
+  return (cm: CodeMirror.Editor) => {
     state = !state;
     if (state) {
       setFullscreen(cm);
@@ -61,18 +61,15 @@ export class SimpleEditor extends PureComponent<PanelEditorProps<SimpleOptions>>
   }
 
   componentDidMount() {
-    var fullscreenToggle = fullscreenToggleGen();
+    const fullscreenToggle = fullscreenToggleGen();
     this.cm = CodeMirror.fromTextArea(this.editorRef.current, {
       theme: 'darcula',
       mode: 'javascript',
       tabSize: 2,
       extraKeys: {
-        'Ctrl-Enter': function(cm) {
+        'Ctrl-Enter': cm => {
           fullscreenToggle(cm);
           // cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-        },
-        Esc: function(cm) {
-          // if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
         },
       },
     });
