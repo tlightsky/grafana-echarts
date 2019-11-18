@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import echarts from 'echarts';
 import 'echarts-wordcloud';
 import 'echarts-liquidfill';
+import 'echarts/map/js/china';
 import { PanelProps } from '@grafana/ui';
 import { SimpleOptions } from 'types';
 
